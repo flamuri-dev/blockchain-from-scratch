@@ -2,7 +2,7 @@
 //! ready to be worn again. Or course washing and wearing clothes takes its toll on the clothes, and
 //! eventually they get tattered.
 
-use super::StateMachine;
+use super::{p4_accounted_currency::AccountedCurrency, StateMachine};
 
 /// This state machine models the typical life cycle of clothes as they make their way through the laundry
 /// cycle several times before ultimately becoming tattered.
@@ -40,7 +40,51 @@ impl StateMachine for ClothesMachine {
     type Transition = ClothesAction;
 
     fn next_state(starting_state: &ClothesState, t: &ClothesAction) -> ClothesState {
-        todo!("Exercise 3")
+        match t {
+            ClothesAction::Wear => {
+                match starting_state {
+                    ClothesState::Tattered => ClothesState::Tattered,
+                    ClothesState::Clean(current_time_left) | ClothesState::Dirty(current_time_left) | ClothesState::Wet(current_time_left) => {
+                        if *current_time_left > 1 {
+                            ClothesState::Dirty(current_time_left - 1)
+                        } else {
+                            ClothesState::Tattered
+                        }
+                    }
+                }
+            }
+            ClothesAction::Wash => {
+                match starting_state {
+                    ClothesState::Tattered => ClothesState::Tattered,
+                    ClothesState::Dirty(current_time_left) | ClothesState::Wet(current_time_left) | ClothesState::Clean(current_time_left) => {
+                        if *current_time_left > 1 {
+                            ClothesState::Wet(current_time_left - 1)
+                        } else {
+                            ClothesState::Tattered
+                        }
+                    },
+                }
+            },
+            ClothesAction::Dry => {
+                match starting_state {
+                    ClothesState::Tattered => ClothesState::Tattered,
+                    ClothesState::Dirty(current_time_left)  => {
+                        if *current_time_left > 1 {
+                            ClothesState::Dirty(current_time_left - 1)
+                        } else {
+                            ClothesState::Tattered
+                        }
+                    },
+                    ClothesState::Clean(current_time_left) | ClothesState::Wet(current_time_left)  => {
+                        if *current_time_left > 1 {
+                            ClothesState::Clean(current_time_left - 1)
+                        } else {
+                            ClothesState::Tattered
+                        }
+                    },
+                }
+            }
+        }
     }
 }
 
