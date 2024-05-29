@@ -58,9 +58,10 @@ impl StateMachine for Atm {
     type Transition = Action;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        todo!("Exercise 4")
+        todo!("Exercise 1")
     }
 }
+
 
 #[test]
 fn sm_3_simple_swipe_card() {
@@ -264,3 +265,4 @@ fn sm_3_withdraw_acceptable_amount() {
 
     assert_eq!(end, expected);
 }
+

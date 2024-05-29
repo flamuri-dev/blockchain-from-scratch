@@ -94,7 +94,43 @@ impl StateMachine for DigitalCashSystem {
     type Transition = CashTransaction;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        todo!("Exercise 1")
+        match t {
+            CashTransaction::Mint { minter, amount } => {
+                let mut new_state = starting_state.clone();
+                new_state.add_bill(Bill {
+                    owner: *minter,
+                    amount: *amount,
+                    serial: starting_state.next_serial()
+                });
+                new_state
+            }
+            CashTransaction::Transfer {spends, receives} => {
+                let mut new_state = starting_state.clone();
+                let mut seen_bills: Vec<u64> = Vec::new();
+                let mut spent = 0;
+                let mut received = 0;
+
+                for bill in spends.iter() {
+                    if !starting_state.bills.contains(bill) || seen_bills.contains(&bill.serial) {
+                        return starting_state.clone();
+                    }
+                    spent += bill.amount;
+                    new_state.bills.remove(bill);
+                    seen_bills.push(bill.serial);
+                }
+
+                for bill in receives.iter() {
+                    received += bill.amount;
+                    if received > spent || bill.serial < starting_state.next_serial || bill.serial == u64::MAX || bill.amount == 0 {
+                        return starting_state.clone();
+                    }
+                    new_state.set_serial(new_state.next_serial());
+                    new_state.add_bill(bill.clone());
+                }
+
+                new_state
+            },
+        }
     }
 }
 
